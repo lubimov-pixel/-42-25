@@ -12,7 +12,6 @@
 
 ```bash
 #!/usr/bin/env bash
-# Задача 1: отсортированный список имён пользователей из passwd
 grep -oE '^[^#:][^:]*' /etc/passwd | sort
 ```
 
@@ -50,7 +49,6 @@ mail
 
 ```bash
 #!/usr/bin/env bash
-# Задача 2: 5 наибольших номеров протоколов из /etc/protocols
 grep -v '^#' /etc/protocols | awk 'NF>=2 {print $2, $1}' | sort -rn | head -5
 ```
 
@@ -82,7 +80,6 @@ $ ./task2.sh
 
 ```bash
 #!/usr/bin/env bash
-# Задача 3: вывод текста в рамке (ширина зависит от текста)
 text="$*"
 [ -z "$text" ] && { echo "Usage: $0 text" >&2; exit 1; }
 border=$(printf '%*s' $(( ${#text} + 2 )) '' | tr ' ' '-')
@@ -117,7 +114,6 @@ h hello include int main n printf return stdio void world
 
 ```bash
 #!/usr/bin/env bash
-# Задача 4: все идентификаторы из файла без повторений
 [ $# -ne 1 ] && { echo "Usage: $0 file" >&2; exit 1; }
 grep -oE '[A-Za-z_][A-Za-z0-9_]*' "$1" | LC_ALL=C sort -u | paste -sd' ' -
 ```
@@ -152,7 +148,6 @@ h hello include int main n printf return stdio void world
 
 ```bash
 #!/usr/bin/env bash
-# Задача 5: регистрация команды (права 755 + копия в /usr/local/bin)
 if [ $# -ne 1 ] || [ ! -f "$1" ]; then
     echo "Usage: $0 script" >&2
     exit 1
@@ -186,7 +181,6 @@ $ cd / && /usr/local/bin/banner "Hello from RTU MIREA!"
 
 ```bash
 #!/usr/bin/env bash
-# Задача 6: есть ли комментарий в первой строке файлов .c, .js, .py
 dir="${1:-.}"
 find "$dir" -type f \( -name '*.c' -o -name '*.js' -o -name '*.py' \) | sort |
 while IFS= read -r f; do
@@ -222,7 +216,6 @@ $ ./task6.sh testdata/t6
 
 ```bash
 #!/usr/bin/env bash
-# Задача 7: поиск файлов-дубликатов (по SHA-256 содержимого)
 [ $# -ne 1 ] && { echo "Usage: $0 dir" >&2; exit 1; }
 find "$1" -type f -exec shasum -a 256 {} + | sort | awk '
 {
@@ -257,7 +250,6 @@ testdata/t7/sub/b.txt
 
 ```bash
 #!/usr/bin/env bash
-# Задача 8: архивировать файлы с заданным расширением в tar
 if [ $# -lt 1 ]; then
     echo "Usage: $0 extension [dir]" >&2
     exit 1
@@ -297,7 +289,6 @@ t8/a.txt
 
 ```bash
 #!/usr/bin/env bash
-# Задача 9: замена 4 пробелов на табуляцию
 if [ $# -ne 2 ]; then
     echo "Usage: $0 input output" >&2
     exit 1
@@ -321,7 +312,6 @@ aaaa^Ibbbb^I^Icccc$
 
 ```bash
 #!/usr/bin/env bash
-# Задача 10: пустые текстовые файлы в каталоге
 if [ $# -ne 1 ] || [ ! -d "$1" ]; then
     echo "Usage: $0 directory" >&2
     exit 1
