@@ -11,24 +11,22 @@
 ### Программа
 
 ```bash
-#!/usr/bin/env bash
-grep -oE '^[^#:][^:]*' /etc/passwd | sort
+grep -v '^#' /etc/passwd | cut -d: -f1 | sort
 ```
 
 ### Результат
 
 ```text
-$ ./task1.sh | head -n 10
-_apt
-backup
-bin
-claude
-daemon
-games
-irc
-list
-lp
-mail
+_accessoryupdater
+_amavisd
+_analyticsd
+_aonsensed
+_appinstalld
+_appleevents
+_applepay
+_appowner
+_appserver
+_appstore
 ...
 ```
 
@@ -48,16 +46,14 @@ mail
 ### Программа
 
 ```bash
-#!/usr/bin/env bash
 grep -v '^#' /etc/protocols | awk 'NF>=2 {print $2, $1}' | sort -rn | head -5
 ```
 
 ### Результат
 
 ```text
-$ ./task2.sh
-262 mptcp
-143 ethernet
+258 divert
+240 pfsync
 142 rohc
 141 wesp
 140 shim6
@@ -79,7 +75,6 @@ $ ./task2.sh
 ### Программа
 
 ```bash
-#!/usr/bin/env bash
 text="$*"
 [ -z "$text" ] && { echo "Usage: $0 text" >&2; exit 1; }
 border=$(printf '%*s' $(( ${#text} + 2 )) '' | tr ' ' '-')
@@ -89,12 +84,10 @@ printf '+%s+\n| %s |\n+%s+\n' "$border" "$text" "$border"
 ### Результат
 
 ```text
-$ ./banner "Hello from RTU MIREA!"
 +-----------------------+
 | Hello from RTU MIREA! |
 +-----------------------+
 
-$ ./banner "Ok"
 +----+
 | Ok |
 +----+
@@ -113,7 +106,6 @@ h hello include int main n printf return stdio void world
 ### Программа
 
 ```bash
-#!/usr/bin/env bash
 [ $# -ne 1 ] && { echo "Usage: $0 file" >&2; exit 1; }
 grep -oE '[A-Za-z_][A-Za-z0-9_]*' "$1" | LC_ALL=C sort -u | paste -sd' ' -
 ```
@@ -128,7 +120,6 @@ int main(void) {
     return 0;
 }
 
-$ ./task4.sh testdata/hello.c
 h hello include int main n printf return stdio void world
 ```
 
@@ -147,7 +138,6 @@ h hello include int main n printf return stdio void world
 ### Программа
 
 ```bash
-#!/usr/bin/env bash
 if [ $# -ne 1 ] || [ ! -f "$1" ]; then
     echo "Usage: $0 script" >&2
     exit 1
@@ -173,156 +163,3 @@ $ cd / && /usr/local/bin/banner "Hello from RTU MIREA!"
 +-----------------------+
 ```
 
-## Задача 6
-
-Написать программу для проверки наличия комментария в первой строке файлов с расширением c, js и py.
-
-### Программа
-
-```bash
-#!/usr/bin/env bash
-dir="${1:-.}"
-find "$dir" -type f \( -name '*.c' -o -name '*.js' -o -name '*.py' \) | sort |
-while IFS= read -r f; do
-    first=$(head -n 1 "$f")
-    case "$f" in
-        *.py) re='^[[:space:]]*#' ;;
-        *)    re='^[[:space:]]*(//|/\*)' ;;
-    esac
-    if printf '%s\n' "$first" | grep -Eq "$re"; then
-        echo "комментарий есть: $f"
-    else
-        echo "комментария нет:  $f"
-    fi
-done
-```
-
-### Результат
-
-```text
-$ ./task6.sh testdata/t6
-комментарий есть: testdata/t6/a.c
-комментария нет:  testdata/t6/b.c
-комментарий есть: testdata/t6/c.py
-комментария нет:  testdata/t6/d.py
-комментарий есть: testdata/t6/e.js
-```
-
-## Задача 7
-
-Написать программу для нахождения файлов-дубликатов (имеющих 1 или более копий содержимого) по заданному пути (и подкаталогам).
-
-### Программа
-
-```bash
-#!/usr/bin/env bash
-[ $# -ne 1 ] && { echo "Usage: $0 dir" >&2; exit 1; }
-find "$1" -type f -exec shasum -a 256 {} + | sort | awk '
-{
-    hash = $1
-    file = substr($0, 67)
-    if (hash == prev) {
-        if (!printed) { print "--- дубликаты:"; print prevfile; printed = 1 }
-        print file
-    } else {
-        printed = 0
-    }
-    prev = hash
-    prevfile = file
-}'
-```
-
-### Результат
-
-```text
-$ ./task7.sh testdata/t7
---- дубликаты:
-testdata/t7/a.txt
-testdata/t7/c.txt
-testdata/t7/sub/b.txt
-```
-
-## Задача 8
-
-Написать программу, которая находит все файлы в данном каталоге с расширением, указанным в качестве аргумента и архивирует все эти файлы в архив tar.
-
-### Программа
-
-```bash
-#!/usr/bin/env bash
-if [ $# -lt 1 ]; then
-    echo "Usage: $0 extension [dir]" >&2
-    exit 1
-fi
-ext="${1#.}"
-dir="${2:-.}"
-out="archive_${ext}.tar"
-
-files=()
-while IFS= read -r -d '' f; do
-    files+=("$f")
-done < <(find "$dir" -maxdepth 1 -type f -name "*.$ext" -print0)
-
-if [ ${#files[@]} -eq 0 ]; then
-    echo "No .$ext files in $dir" >&2
-    exit 1
-fi
-tar -cf "$out" "${files[@]}"
-echo "Создан архив $out:"
-tar -tf "$out"
-```
-
-### Результат
-
-```text
-$ cd testdata && ../task8.sh txt t8
-Создан архив archive_txt.tar:
-t8/b.txt
-t8/a.txt
-```
-
-## Задача 9
-
-Написать программу, которая заменяет в файле последовательности из 4 пробелов на символ табуляции. Входной и выходной файлы задаются аргументами.
-
-### Программа
-
-```bash
-#!/usr/bin/env bash
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 input output" >&2
-    exit 1
-fi
-tab=$(printf '\t')
-sed -E "s/ {4}/$tab/g" "$1" > "$2"
-```
-
-### Результат
-
-```text
-$ ./task9.sh testdata/in.txt testdata/out.txt && cat -et testdata/out.txt
-aaaa^Ibbbb^I^Icccc$
-```
-
-## Задача 10
-
-Написать программу, которая выводит названия всех пустых текстовых файлов в указанной директории. Директория передается в программу параметром.
-
-### Программа
-
-```bash
-#!/usr/bin/env bash
-if [ $# -ne 1 ] || [ ! -d "$1" ]; then
-    echo "Usage: $0 directory" >&2
-    exit 1
-fi
-find "$1" -type f -name '*.txt' -empty
-```
-
-### Результат
-
-```text
-$ ./task10.sh testdata/t10
-testdata/t10/empty2.txt
-testdata/t10/empty1.txt
-```
